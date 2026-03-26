@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/routing'
 import { Button } from '@/components/ui/button'
 import { Calendar, TrendingUp, Star, ArrowRight } from 'lucide-react'
 
@@ -26,6 +28,8 @@ export function WhatsNew({
   maxItems = 6, 
   className = '' 
 }: WhatsNewProps) {
+  const t = useTranslations('navigation')
+  const commonT = useTranslations('common')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
 
   const categories = [
@@ -62,7 +66,6 @@ export function WhatsNew({
     const categoryConfig = categories.find(cat => cat.id === category)
     return categoryConfig?.color || 'bg-gray-500'
   }
-  }
 
   return (
     <div className={`bg-white rounded-lg shadow-md p-6 ${className}`}>
@@ -72,9 +75,9 @@ export function WhatsNew({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => window.open('/tools/service-charges', '_self')}
+          asChild
         >
-          View All Updates
+          <Link href="/digital-services">View All Updates</Link>
         </Button>
       </div>
 
@@ -101,12 +104,12 @@ export function WhatsNew({
       {/* News Items */}
       <div className="space-y-4">
         {filteredItems.map((item) => (
-          <div
+          <Link
             key={item.id}
-            className={`border rounded-lg p-4 hover:shadow-md transition-all cursor-pointer ${
+            href={item.link || '#'}
+            className={`block border rounded-lg p-4 hover:shadow-md transition-all ${
               item.featured ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
             }`}
-            onClick={() => item.link && window.open(item.link, '_self')}
           >
             <div className="flex justify-between items-start">
               <div className="flex-1">
@@ -134,7 +137,7 @@ export function WhatsNew({
 
                 {item.link && (
                   <div className="flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium">
-                    Read More
+                    {commonT('read_more')}
                     <ArrowRight className="w-4 h-4 ml-1" />
                   </div>
                 )}
@@ -150,7 +153,7 @@ export function WhatsNew({
                 </div>
               )}
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 
@@ -171,7 +174,6 @@ export function WhatsNew({
         </div>
       )}
     </div>
-  </div>
   )
 }
 
@@ -184,7 +186,7 @@ export const defaultWhatsNewItems: NewsItem[] = [
     category: 'product',
     date: '2024-01-15',
     featured: true,
-    link: '/personal-banking/personal-loan'
+    link: '/personal-loan'
   },
   {
     id: '2',
@@ -217,14 +219,14 @@ export const defaultWhatsNewItems: NewsItem[] = [
     summary: 'Special processing fee waiver on home loans during this festive season. Limited time offer.',
     category: 'offer',
     date: '2024-01-05',
-    link: '/personal-banking/home-loan'
+    link: '/home-loan'
   },
   {
     id: '6',
-    title: 'New Branch Opening in Pune',
-    summary: 'We\'re pleased to announce the opening of our new branch in Pune with extended banking hours.',
+    title: 'New Branch Opening',
+    summary: 'We\'re pleased to announce the opening of our new branch with extended banking hours.',
     category: 'service',
     date: '2024-01-03',
-    link: '/tools/branch-locator'
+    link: '/locate-us'
   }
 ]

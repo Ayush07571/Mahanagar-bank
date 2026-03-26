@@ -33,7 +33,7 @@ export default function Carousel({
   const [isPaused, setIsPaused] = useState(false)
 
   useEffect(() => {
-    if (!autoPlay || isPaused) return
+    if (!autoPlay || isPaused || !items.length) return
 
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % items.length)
@@ -54,87 +54,96 @@ export default function Carousel({
     setCurrentIndex(index)
   }
 
-  const currentItem = items[currentIndex]
+  if (!items.length) return null
 
   return (
-    <div className={`relative w-full overflow-hidden ${className}`}>
-      <div className="flex items-center justify-between">
+    <div 
+      className={`relative w-full overflow-hidden ${className}`}
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      <div className="flex items-center justify-between px-4">
+        {/* Previous Button */}
         <Button
           variant="ghost"
-          size="sm"
+          size="icon"
           onClick={goToPrevious}
-          className="rounded-full p-2 transition-all duration-200"
+          className="rounded-full bg-white/20 hover:bg-white/40 text-white z-10 hidden sm:flex"
           aria-label="Previous slide"
         >
-          <ChevronLeft className="w-5 h-5" />
+          <ChevronLeft className="w-6 h-6" />
         </Button>
 
-        <div className="flex-1 overflow-hidden">
+        {/* Carousel Content */}
+        <div className="flex-1 overflow-hidden relative mx-2">
           <div 
             className="flex transition-transform duration-500 ease-in-out"
             style={{ transform: `translateX(-${currentIndex * 100}%)` }}
           >
-            {items.map((item, index) => (
+            {items.map((item) => (
               <div
                 key={item.id}
                 className="w-full flex-shrink-0"
               >
-                <div className="relative">
+                <div className="relative rounded-xl overflow-hidden bg-gray-900 aspect-[21/9]">
                   {item.image && (
                     <img
                       src={item.image}
                       alt={item.title}
-                      className="w-full h-64 object-cover"
+                      className="w-full h-full object-cover opacity-60"
                     />
                   )}
                   
-                  <div className="p-6 bg-white bg-opacity-90 rounded-lg">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  <div className="absolute inset-0 flex flex-col justify-center p-8 sm:p-12 text-white">
+                    <h3 className="text-2xl sm:text-4xl font-bold mb-2">
                       {item.title}
                     </h3>
-                    <p className="text-gray-600 mb-4">
+                    <p className="text-lg sm:text-xl font-medium mb-4 text-blue-200">
                       {item.subtitle}
                     </p>
-                    <p className="text-gray-700 mb-4">
+                    <p className="text-base sm:text-lg max-w-2xl mb-6 text-gray-200 line-clamp-2">
                       {item.description}
                     </p>
                     
                     {item.cta && (
-                      <Button
-                        className="mt-4"
-                        onClick={() => window.open(item.cta?.link, '_blank')}
-                      >
-                        {item.cta?.text}
-                      </Button>
+                      <div className="flex gap-4">
+                        <Button
+                          className="bg-blue-600 hover:bg-blue-700 text-white"
+                          onClick={() => window.open(item.cta?.link, '_self')}
+                        >
+                          {item.cta?.text}
+                        </Button>
+                      </div>
                     )}
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </div>
 
+        {/* Next Button */}
         <Button
           variant="ghost"
-          size="sm"
+          size="icon"
           onClick={goToNext}
-          className="rounded-full p-2 transition-all duration-200"
+          className="rounded-full bg-white/20 hover:bg-white/40 text-white z-10 hidden sm:flex"
           aria-label="Next slide"
         >
-          <ChevronRight className="w-5 h-5" />
+          <ChevronRight className="w-6 h-6" />
         </Button>
       </div>
 
       {/* Slide Indicators */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10">
         {items.map((_, index) => (
           <button
             key={index}
             onClick={() => goToSlide(index)}
-            className={`w-3 h-3 rounded-full transition-all duration-200 ${
+            className={`w-2 h-2 rounded-full transition-all duration-300 ${
               index === currentIndex
-                ? 'bg-blue-600 text-white'
-                : 'bg-white border border-gray-300 text-gray-600'
+                ? 'bg-white w-6'
+                : 'bg-white/50'
             }`}
             aria-label={`Go to slide ${index + 1}`}
           />
@@ -176,7 +185,7 @@ export const defaultCarouselItems: CarouselItem[] = [
     image: '/images/hero-loans.jpg',
     cta: {
       text: 'Apply Now',
-      link: '/personal-banking/personal-loan'
+      link: '/personal-loan'
     }
   },
   {
@@ -187,7 +196,7 @@ export const defaultCarouselItems: CarouselItem[] = [
     image: '/images/hero-security.jpg',
     cta: {
       text: 'Learn More',
-      link: '/compliance'
+      link: '/compliance/policy-centre'
     }
   }
 ]

@@ -56,7 +56,8 @@
     "for": "for",
     "with": "with",
     "from": "from",
-    "to": "to"
+    "to": "to",
+    "calculator": "Calculator"
   },
   "navigation": {
     "home": "Home",
@@ -84,7 +85,11 @@
     "language_en": "EN",
     "language_hi": "HI",
     "net_banking_button": "Net Banking",
-    "mobile_menu_close": "Close Menu"
+    "mobile_menu_close": "Close Menu",
+    "personal_banking": "Personal Banking",
+    "business_banking": "Business Banking",
+    "about_us": "About Us",
+    "contact_us": "Contact Us"
   },
   "footer": {
     "about_us_title": "About Us",

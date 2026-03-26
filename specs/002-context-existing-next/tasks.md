@@ -50,18 +50,18 @@ We will follow an incremental delivery approach, starting with the foundational 
 
 **Goal**: Full compliance with DEAF, Grievance, and KFS requirements.
 
-- [ ] T017 [US3] Implement the DEAF Search Table and real-time filtering in `app/compliance/deaf-unclaimed-deposits/page.tsx`
-- [ ] T018 [P] [US3] Create the Grievance Escalation Matrix component in `components/compliance/EscalationMatrix.tsx`
-- [ ] T019 [US3] Implement the KFS (Key Facts Statement) panel in `components/banking/KFSPanel.tsx`
-- [ ] T020 [P] [US3] Integrate KFSPanel into all 18 loan product pages
-- [ ] T021 [US3] Create the Policy Centre page with downloadable PDF links in `app/compliance/policy-centre/page.tsx`
+- [X] T017 [US3] Implement the DEAF Search Table and real-time filtering in `app/compliance/deaf-unclaimed-deposits/page.tsx`
+- [X] T018 [P] [US3] Create the Grievance Escalation Matrix component in `components/compliance/EscalationMatrix.tsx`
+- [X] T019 [US3] Implement the KFS (Key Facts Statement) panel in `components/banking/KFSPanel.tsx`
+- [X] T020 [P] [US3] Integrate KFSPanel into all 18 loan product pages
+- [X] T021 [US3] Create the Policy Centre page with downloadable PDF links in `app/compliance/policy-centre/page.tsx`
 
 ## Phase 6: Polish & Cross-Cutting
 
-- [ ] T022 [P] Audit all pages for WCAG 2.1 AA compliance and fix semantic HTML issues
-- [ ] T023 Finalize responsive styling (spacing, typography) across all 100+ pages
-- [ ] T024 [P] Implement SEO metadata (titles, descriptions) for all root-level slugs
-- [ ] T025 Conduct final BRD coverage validation and link checking
+- [X] T022 [P] Audit all pages for WCAG 2.1 AA compliance and fix semantic HTML issues
+- [X] T023 Finalize responsive styling (spacing, typography) across all 100+ pages
+- [X] T024 [P] Implement SEO metadata (titles, descriptions) for all root-level slugs
+- [X] T025 Conduct final BRD coverage validation and link checking
 
 ## Dependency Graph
 

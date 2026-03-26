@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { colorUtils, ariaUtils, focusUtils, themeUtils, responsiveUtils } from '@/lib/accessibility'
-import { cssUtils } from '@/lib/styling'
+import { cssUtils, componentUtils } from '@/lib/styling'
 
 export interface UseAccessibilityOptions {
   initialTheme?: 'light' | 'dark'
@@ -18,6 +18,7 @@ export const useAccessibility = (options: UseAccessibilityOptions = {}) => {
   const [highContrast, setHighContrast] = useState(options.highContrast || false)
   const [reducedMotion, setReducedMotion] = useState(options.reducedMotion || false)
   const [announceNavigation, setAnnounceNavigation] = useState(options.announceNavigation || false)
+  const [skipLinks, setSkipLinks] = useState(options.skipLinks || false)
 
   // Apply theme on mount
   useEffect(() => {
@@ -55,6 +56,7 @@ export const useAccessibility = (options: UseAccessibilityOptions = {}) => {
     if (newHighContrast) {
       const style = document.createElement('style')
       style.textContent = cssUtils.highContrast
+      style.setAttribute('data-high-contrast', 'true')
       document.head.appendChild(style)
     } else {
       // Remove high contrast style if it exists
@@ -87,14 +89,14 @@ export const useAccessibility = (options: UseAccessibilityOptions = {}) => {
 
   // Skip links toggle
   const toggleSkipLinks = useCallback(() => {
-    const newSkipLinks = !skipLinks
-    setSkipLinks(newSkipLinks)
+    const newSkipLinksValue = !skipLinks
+    setSkipLinks(newSkipLinksValue)
   }, [skipLinks])
 
   // Announce navigation changes
   const announcePageChange = useCallback((pageName: string) => {
     if (announceNavigation) {
-      ariaUtils.announceToScreenReader(`Navigated to ${pageName}`)
+      focusUtils.announceToScreenReader(`Navigated to ${pageName}`)
     }
   }, [announceNavigation])
 
@@ -126,6 +128,8 @@ export const useAccessibility = (options: UseAccessibilityOptions = {}) => {
     reducedMotion,
     setReducedMotion,
     toggleReducedMotion,
+    skipLinks,
+    toggleSkipLinks,
     
     // Navigation preferences
     announceNavigation,
@@ -152,22 +156,23 @@ export const useStyling = (options: UseStylingOptions = {}) => {
   const [variant, setVariant] = useState(options.initialVariant || 'primary')
   const [size, setSize] = useState(options.initialSize || 'md')
   const [color, setColor] = useState(options.initialColor || 'primary')
+  const [rounded, setRounded] = useState(options.rounded || true)
+  const [shadow, setShadow] = useState(options.shadow || false)
+  const [fullWidth, setFullWidth] = useState(options.fullWidth || false)
 
   // Generate button classes
-  const getButtonClasses = useCallback((buttonVariant?: string, buttonSize?: string) => {
-    const variant = buttonVariant || variant
-    const size = buttonSize || size
-    return cssUtils.getButtonClass(variant, size)
+  const getButtonClasses = useCallback((btnVariant?: 'primary' | 'secondary' | 'outline' | 'ghost', btnSize?: 'sm' | 'md' | 'lg') => {
+    return componentUtils.getButtonClass(btnVariant || variant, btnSize || size)
   }, [variant, size])
 
   // Generate card classes
   const getCardClasses = useCallback((elevated?: boolean) => {
-    return cssUtils.getCardClass(elevated)
+    return componentUtils.getCardClass(elevated)
   }, [])
 
   // Generate input classes
   const getInputClasses = useCallback((hasError?: boolean) => {
-    return cssUtils.getInputClass(hasError || false)
+    return componentUtils.getInputClass(hasError || false)
   }, [])
 
   // Color utilities
@@ -176,8 +181,8 @@ export const useStyling = (options: UseStylingOptions = {}) => {
   }, [])
 
   // Spacing utilities
-  const getSpacingClass = useCallback((size: 1 | 2 | 3 | 4 | 5 | 6 | 8 | 10 | 12 | 16 | 20 | 24) => {
-    return cssUtils.getSpacingClass(size)
+  const getSpacingClass = useCallback((sizeValue: 1 | 2 | 3 | 4 | 5 | 6 | 8 | 10 | 12 | 16 | 20 | 24) => {
+    return cssUtils.getSpacingClass(sizeValue)
   }, [])
 
   // Animation utilities
@@ -194,8 +199,11 @@ export const useStyling = (options: UseStylingOptions = {}) => {
     color,
     setColor,
     rounded,
+    setRounded,
     shadow,
+    setShadow,
     fullWidth,
+    setFullWidth,
     
     // Utility functions
     getButtonClasses,
@@ -222,14 +230,17 @@ export const useFocusManagement = (options: UseFocusManagementOptions = {}) => {
     if (element) {
       setFocusedElement(elementId)
       element.focus()
-      ariaUtils.announceToScreenReader(`Focused on ${elementId}`)
+      focusUtils.announceToScreenReader(`Focused on ${elementId}`)
     }
   }, [])
 
   // Restore focus to previously focused element
   const restoreFocus = useCallback(() => {
     if (shouldRestoreFocus && focusedElement) {
-      focusUtils.restoreFocus(document.getElementById(focusedElement))
+      const element = document.getElementById(focusedElement)
+      if (element) {
+        focusUtils.restoreFocus(element)
+      }
       setShouldRestoreFocus(false)
     }
   }, [shouldRestoreFocus, focusedElement])

@@ -100,6 +100,23 @@ export const ariaUtils = {
   })
 }
 
+// Theme utilities
+export const themeUtils = {
+  // Apply theme to document element
+  applyTheme: (theme: 'light' | 'dark') => {
+    if (typeof window === 'undefined') return
+    
+    const root = document.documentElement
+    if (theme === 'dark') {
+      root.classList.add('dark')
+    } else {
+      root.classList.remove('dark')
+    }
+    
+    localStorage.setItem('theme', theme)
+  }
+}
+
 // Focus management utilities
 export const focusUtils = {
   // Trap focus within modal

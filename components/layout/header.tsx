@@ -33,88 +33,82 @@ export function Header() {
             {/* Logo */}
             <div className="flex items-center">
               <Link href="/" className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">MNS</span>
+                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-lg">MNS</span>
                 </div>
-                <span className="text-xl font-bold text-gray-900 hidden sm:block">
-                  MNS Bank
-                </span>
+                <span className="text-xl font-bold text-gray-900">Bank</span>
               </Link>
             </div>
 
             {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center space-x-8">
-              <div className="flex items-center space-x-6">
-                <Link
-                  href="/personal-banking"
-                  className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors"
-                >
-                  {t('personal_banking', { defaultValue: 'Personal Banking' })}
-                </Link>
-                <Link
-                  href="/business-banking"
-                  className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors"
-                >
-                  {t('business_banking', { defaultValue: 'Business Banking' })}
-                </Link>
-              </div>
+            <nav className="hidden md:flex items-center space-x-8">
+              <Link href="/personal-banking" className="text-gray-700 hover:text-blue-600 font-medium">
+                {t('personal_banking')}
+              </Link>
+              <Link href="/business-banking" className="text-gray-700 hover:text-blue-600 font-medium">
+                {t('business_banking')}
+              </Link>
+              <Link href="/about-us" className="text-gray-700 hover:text-blue-600 font-medium">
+                {t('about_us')}
+              </Link>
+              <Link href="/contact-us" className="text-gray-700 hover:text-blue-600 font-medium">
+                {t('contact_us')}
+              </Link>
             </nav>
 
-            {/* Right side items */}
-            <div className="flex items-center space-x-4">
-              {/* Language Toggle */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleLanguage}
-                className="flex items-center space-x-1 text-gray-600 hover:text-blue-600"
-              >
+            {/* Right Side Actions */}
+            <div className="hidden md:flex items-center space-x-4">
+              <Button variant="outline" size="sm" onClick={toggleLanguage} className="flex items-center space-x-1">
                 <Globe className="w-4 h-4" />
-                <span className="text-sm font-medium uppercase">
-                  {locale}
-                </span>
+                <span>{locale === 'en' ? 'EN' : 'HI'}</span>
               </Button>
-
-              {/* Net Banking CTA */}
-              <Button
-                asChild
-                className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-medium"
-              >
-                <Link href="/digital-services/net-banking">
-                  {t('net_banking_button', { defaultValue: 'Net Banking' })}
-                </Link>
+              <Button className="bg-blue-600 hover:bg-blue-700">
+                {t('net_banking_button')}
               </Button>
+            </div>
 
-              {/* Mobile menu button */}
+            {/* Mobile Menu Button */}
+            <div className="md:hidden">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={toggleMobileMenu}
-                className="lg:hidden text-gray-600 hover:text-gray-900"
+                className="p-2"
               >
-                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                {isMobileMenuOpen ? (
+                  <X className="w-6 h-6" />
+                ) : (
+                  <Menu className="w-6 h-6" />
+                )}
               </Button>
             </div>
           </div>
 
-          {/* Mobile Navigation */}
+          {/* Mobile Menu */}
           {isMobileMenuOpen && (
-            <div className="lg:hidden border-t border-gray-200 py-4">
+            <div className="md:hidden py-4 border-t border-gray-200">
               <nav className="flex flex-col space-y-4">
-                <Link
-                  href="/personal-banking"
-                  className="text-gray-700 hover:text-blue-600 px-3 py-2 text-base font-medium transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {t('personal_banking', { defaultValue: 'Personal Banking' })}
+                <Link href="/personal-banking" className="text-gray-700 hover:text-blue-600 font-medium">
+                  {t('personal_banking')}
                 </Link>
-                <Link
-                  href="/business-banking"
-                  className="text-gray-700 hover:text-blue-600 px-3 py-2 text-base font-medium transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {t('business_banking', { defaultValue: 'Business Banking' })}
+                <Link href="/business-banking" className="text-gray-700 hover:text-blue-600 font-medium">
+                  {t('business_banking')}
                 </Link>
+                <Link href="/about-us" className="text-gray-700 hover:text-blue-600 font-medium">
+                  {t('about_us')}
+                </Link>
+                <Link href="/contact-us" className="text-gray-700 hover:text-blue-600 font-medium">
+                  {t('contact_us')}
+                </Link>
+                <div className="flex items-center space-x-4 pt-4">
+                  <Button variant="outline" size="sm" onClick={toggleLanguage} className="flex items-center space-x-1">
+                    <Globe className="w-4 h-4" />
+                    <span>{locale === 'en' ? 'EN' : 'HI'}</span>
+                  </Button>
+                  <Button className="bg-blue-600 hover:bg-blue-700">
+                    {t('net_banking_button')}
+                  </Button>
+                </div>
               </nav>
             </div>
           )}

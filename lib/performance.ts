@@ -1,6 +1,8 @@
 // Performance optimization utilities for MNS Bank
 // This file provides image optimization, lazy loading, and performance monitoring
 
+import { useState, useEffect } from 'react'
+
 export interface ImageOptimizationOptions {
   quality?: number
   format?: 'webp' | 'avif' | 'jpg' | 'png'
@@ -54,7 +56,7 @@ export class ImageOptimizer {
     type: 'blur' | 'color' | 'empty' = 'blur',
     width?: number,
     height?: number
-  ): string => {
+  ): string {
     switch (type) {
       case 'blur':
         return `${imageUrl}?w=${width || 400}&h=${height || 300}&blur=20&q=30`
@@ -77,9 +79,9 @@ export class ImageOptimizer {
     imageUrl: string,
     alt: string,
     options: ImageOptimizationOptions = {}
-  ): string => {
+  ): string {
     const optimizedUrl = this.getOptimizedImageUrl(imageUrl, options)
-    const placeholderUrl = this.getPlaceholderUrl(imageUrl, options.placeholder, options.width, options.height)
+    const placeholderUrl = this.getPlaceholderUrl(imageUrl, options.placeholder || 'blur', options.width, options.height)
     
     return `
       <picture>
@@ -107,7 +109,7 @@ export class ImageOptimizer {
   }
 
   // Generate critical CSS for above-the-fold content
-  static generateCriticalCSS(criticalStyles: string[]): string => {
+  static generateCriticalCSS(criticalStyles: string[]): string {
     return criticalStyles.join('\n')
   }
 
@@ -117,7 +119,7 @@ export class ImageOptimizer {
     as: 'script' | 'style' | 'font' | 'image'
     type?: string
     crossorigin?: string
-  }>): string[] => {
+  }>): string[] {
     return resources.map(resource => {
       let link = `<link rel="preload" href="${resource.href}" as="${resource.as}"`
       
@@ -200,15 +202,6 @@ export class LazyLoader {
     }
   }
 
-  // Load all lazy elements
-  static loadAll(): void {
-    this.elements.forEach((data, element) => {
-      if (!data.loaded) {
-        this.loadElement(element)
-      }
-    })
-  }
-
   // Destroy observer
   static destroy(): void {
     if (this.observer) {
@@ -260,7 +253,7 @@ export class PerformanceMonitor {
 
       // First Input Delay
       if ('PerformanceEventTiming' in window) {
-        const measureInputDelay = () => {
+        const measureInputDelay = (event: Event) => {
           const inputDelay = performance.now() - event.timeStamp
           this.metrics.firstInputDelay = inputDelay
         }
@@ -274,9 +267,9 @@ export class PerformanceMonitor {
         const observer = new PerformanceObserver((list) => {
           const entries = list.getEntries()
           entries.forEach(entry => {
-            if (!entry.hadRecentInput) {
+            if (!(entry as any).hadRecentInput) {
               this.metrics.cumulativeLayoutShift = 
-                (this.metrics.cumulativeLayoutShift || 0) + entry.value
+                (this.metrics.cumulativeLayoutShift || 0) + (entry as any).value
             }
           })
         })
@@ -320,8 +313,8 @@ export class PerformanceMonitor {
     const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming
     
     return {
-      loadTime: navigation.loadEventEnd - navigation.fetchStart,
-      renderTime: navigation.domContentLoadedEventEnd - navigation.fetchStart,
+      loadTime: navigation ? navigation.loadEventEnd - navigation.fetchStart : 0,
+      renderTime: navigation ? navigation.domContentLoadedEventEnd - navigation.fetchStart : 0,
       firstContentfulPaint: this.metrics.firstContentfulPaint || 0,
       largestContentfulPaint: this.metrics.largestContentfulPaint || 0,
       firstInputDelay: this.metrics.firstInputDelay || 0,
@@ -341,8 +334,8 @@ export class PerformanceMonitor {
     }
 
     // Send to analytics service
-    if (typeof window !== 'undefined' && window.gtag) {
-      window.gtag('event', 'web_vitals', {
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', 'web_vitals', {
         event_category: 'Performance',
         custom_map: {
           custom_parameter_1: metrics.loadTime.toFixed(2),
@@ -362,209 +355,6 @@ export class PerformanceMonitor {
   static destroy(): void {
     this.observers.forEach(observer => observer.disconnect())
     this.observers = []
-  }
-}
-
-// Bundle optimization utilities
-export class BundleOptimizer {
-  // Generate optimized bundle configuration
-  static generateBundleConfig(): any {
-    return {
-      // Split vendor and app bundles
-      optimization: {
-        splitChunks: {
-          chunks: 'all',
-          maxInitialRequests: Infinity,
-          minSize: 20000,
-          maxSize: 244000,
-        },
-        runtimeChunk: 'single',
-      },
-      
-      // Tree shaking
-      resolve: {
-        extensions: ['.ts', '.tsx', '.js', '.jsx'],
-        mainFields: ['browser', 'module', 'main'],
-      },
-      
-      // Minification
-      minimizer: [
-        '...',
-        '...'
-      ],
-      
-      // Source maps for production debugging
-      devtool: process.env.NODE_ENV === 'production' ? 'source-map' : 'eval',
-    }
-  }
-
-  // Generate service worker for caching
-  static generateServiceWorker(): string {
-    return `
-      // MNS Bank Service Worker
-      const CACHE_NAME = 'mns-bank-v1'
-      const urlsToCache = [
-        '/',
-        '/personal-banking',
-        '/business-banking',
-        '/digital-services',
-        '/tools/branch-locator',
-        '/images/logo.png',
-        '/images/og-default.jpg'
-      ]
-
-      self.addEventListener('install', event => {
-        event.waitUntil(
-          caches.open(CACHE_NAME)
-            .then(cache => {
-              return cache.addAll(urlsToCache)
-            })
-        )
-      })
-
-      self.addEventListener('fetch', event => {
-        event.respondWith(
-          caches.match(event.request)
-            .then(response => {
-              if (response) {
-                return response
-              }
-              
-              return fetch(event.request)
-            })
-            .then(response => {
-              if (response.ok) {
-                const responseClone = response.clone()
-                caches.open(CACHE_NAME)
-                  .then(cache => {
-                    cache.put(event.request, responseClone)
-                  })
-                return responseClone
-              }
-            })
-        )
-      })
-    `
-  }
-}
-
-// Performance utilities
-export const performanceUtils = {
-  // Debounce function for performance
-  debounce: <T extends any[], R = any>(
-    func: (...args: T[]) => R,
-    wait: number
-  ) => {
-    let timeout: NodeJS.Timeout | null = null
-    
-    return (...args: T[]): Promise<R> => {
-      return new Promise(resolve => {
-        if (timeout) clearTimeout(timeout)
-        
-        timeout = setTimeout(() => {
-          timeout = null
-          resolve(func(...args))
-        }, wait)
-      })
-    }
-  },
-
-  // Throttle function for performance
-  throttle: <T extends any[], R = any>(
-    func: (...args: T[]) => R,
-    limit: number
-  ) => {
-    let inThrottle = false
-    
-    return (...args: T[]): Promise<R> => {
-      return new Promise(resolve => {
-        if (!inThrottle) {
-          inThrottle = true
-          resolve(func(...args))
-          
-          setTimeout(() => {
-            inThrottle = false
-          }, limit)
-        }
-      })
-    }
-  },
-
-  // Memoize function for performance
-  memoize: <T extends any[], R = any>(
-    func: (...args: T[]) => R
-  ) => {
-    const cache = new Map()
-    
-    return (...args: T[]): R => {
-      const key = JSON.stringify(args)
-      
-      if (cache.has(key)) {
-        return cache.get(key)
-      }
-      
-      const result = func(...args)
-      cache.set(key, result)
-      return result
-    }
-  },
-
-  // Measure component render performance
-  measureRender: (componentName: string) => {
-    return (target: any, propertyName: string, descriptor: PropertyDescriptor) => {
-      const originalMethod = descriptor.value
-
-      descriptor.value = function (...args: any[]) {
-        const startTime = performance.now()
-        
-        // Call original method
-        const result = originalMethod.apply(this, args)
-        
-        const endTime = performance.now()
-        const renderTime = endTime - startTime
-        
-        // Log render time
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`${componentName}.${propertyName} render time: ${renderTime.toFixed(2)}ms`)
-        }
-        
-        // Send to analytics
-        if (typeof window !== 'undefined' && window.gtag) {
-          window.gtag('event', 'component_render', {
-            event_category: 'Performance',
-            event_action: componentName,
-            event_label: propertyName,
-            value: Math.round(renderTime)
-          })
-        }
-        
-        return result
-      }
-    }
-  },
-
-  // Optimize images in viewport
-  optimizeViewportImages: () => {
-    const images = document.querySelectorAll('img[data-src]')
-    
-    if ('IntersectionObserver' in window) {
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const img = entry.target as HTMLImageElement
-            const src = img.getAttribute('data-src')
-            if (src) {
-              img.src = src
-              img.removeAttribute('data-src')
-            }
-          }
-        })
-      }, {
-        rootMargin: '50px'
-      })
-
-      images.forEach(img => observer.observe(img))
-    }
   }
 }
 

@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react'
 
 export interface CMSContent {
   id: string
-  type: 'page' | 'component' | 'news' | 'product' | 'service'
+  type: 'page' | 'component' | 'news' | 'product' | 'service' | 'navigation'
   title: string
   slug: string
   content: any
@@ -17,6 +17,8 @@ export interface CMSContent {
     category?: string
     featured?: boolean
     locale?: string
+    description?: string
+    excerpt?: string
   }
 }
 
@@ -95,14 +97,18 @@ export class CMSClient {
   }
 
   // Content fetching methods
-  async getContentByType(type: CMSContent['type'], locale: string = 'en'): Promise<CMSContent[]> {
-    return this.request<CMSContent[]>(`content/${type}`, {
-      params: {
-        locale,
-        limit: '100',
-        sort: 'publishedAt:desc'
-      }
-    })
+  async getContentByType(type: CMSContent['type'], locale: string = 'en', filters?: Record<string, any>): Promise<CMSContent[]> {
+    const params: Record<string, string> = {
+      locale,
+      limit: filters?.limit?.toString() || '100',
+      sort: 'publishedAt:desc'
+    }
+
+    if (filters?.featured !== undefined) {
+      params.featured = filters.featured.toString()
+    }
+
+    return this.request<CMSContent[]>(`content/${type}`, { params })
   }
 
   async getContentBySlug(slug: string, locale: string = 'en'): Promise<CMSContent | null> {
@@ -163,23 +169,22 @@ export class CMSClient {
   }
 
   // Content search and filtering
-  async searchContent(query: string, filters?: {
+  async searchContent(query: string, locale: string = 'en', filters?: {
     type?: CMSContent['type']
     category?: string
-    locale?: string
     featured?: boolean
     dateFrom?: string
     dateTo?: string
   }): Promise<CMSContent[]> {
     const params: Record<string, string> = {
       q: query,
+      locale,
       limit: '50'
     }
 
     if (filters) {
       if (filters.type) params.type = filters.type
       if (filters.category) params.category = filters.category
-      if (filters.locale) params.locale = filters.locale
       if (filters.featured !== undefined) params.featured = filters.featured.toString()
       if (filters.dateFrom) params.dateFrom = filters.dateFrom
       if (filters.dateTo) params.dateTo = filters.dateTo
@@ -308,9 +313,9 @@ export const cmsUtils = {
     try {
       const [hero, news, products, services] = await Promise.all([
         cmsClient.getContentBySlug('homepage-hero', locale),
-        cmsClient.getContentByType('news', { limit: 6, featured: true }),
-        cmsClient.getContentByType('product', { limit: 8 }),
-        cmsClient.getContentByType('service', { limit: 9 })
+        cmsClient.getContentByType('news', locale, { limit: 6, featured: true }),
+        cmsClient.getContentByType('product', locale, { limit: 8 }),
+        cmsClient.getContentByType('service', locale, { limit: 9 })
       ])
 
       return {
@@ -333,7 +338,7 @@ export const cmsUtils = {
   // Get navigation content
   async getNavigationContent(locale: string = 'en') {
     try {
-      const navigation = await cmsClient.getContentByType('navigation', { locale })
+      const navigation = await cmsClient.getContentByType('navigation', locale)
       return navigation
     } catch (error) {
       console.error('Failed to fetch navigation content:', error)
@@ -355,7 +360,7 @@ export const cmsUtils = {
   // Get page content by type
   async getPageContent(type: CMSContent['type'], locale: string = 'en') {
     try {
-      const content = await cmsClient.getContentByType(type, { locale })
+      const content = await cmsClient.getContentByType(type, locale)
       return content
     } catch (error) {
       console.error(`Failed to fetch ${type} content:`, error)
@@ -366,7 +371,7 @@ export const cmsUtils = {
   // Search content across all types
   async searchAllContent(query: string, locale: string = 'en') {
     try {
-      const results = await cmsClient.searchContent(query, { locale })
+      const results = await cmsClient.searchContent(query, locale)
       return results
     } catch (error) {
       console.error('Failed to search content:', error)
@@ -391,14 +396,14 @@ export const useCMSContent = (type: CMSContent['type'], slug?: string, locale: s
         if (slug) {
           result = await cmsClient.getContentBySlug(slug, locale)
         } else {
-          const contents = await cmsClient.getContentByType(type, { limit: 1, locale })
+          const contents = await cmsClient.getContentByType(type, locale, { limit: 1 })
           result = contents[0] || null
         }
 
         setContent(result)
         cmsClient.setCachedContent(`${type}-${slug || 'latest'}-${locale}`, result)
       } catch (err) {
-        setError(err.message)
+        setError(err instanceof Error ? err.message : String(err))
       } finally {
         setLoading(false)
       }
@@ -407,30 +412,26 @@ export const useCMSContent = (type: CMSContent['type'], slug?: string, locale: s
     fetchContent()
   }, [type, slug, locale])
 
-  const refetch = () => {
-    const fetchContent = async () => {
-      try {
-        setLoading(true)
-        setError(null)
-        
-        let result: CMSContent | null = null
-        if (slug) {
-          result = await cmsClient.getContentBySlug(slug, locale)
-        } else {
-          const contents = await cmsClient.getContentByType(type, { limit: 1, locale })
-          result = contents[0] || null
-        }
-
-        setContent(result)
-        cmsClient.setCachedContent(`${type}-${slug || 'latest'}-${locale}`, result)
-      } catch (err) {
-        setError(err.message)
-      } finally {
-        setLoading(false)
+  const refetch = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      
+      let result: CMSContent | null = null
+      if (slug) {
+        result = await cmsClient.getContentBySlug(slug, locale)
+      } else {
+        const contents = await cmsClient.getContentByType(type, locale, { limit: 1 })
+        result = contents[0] || null
       }
-    }
 
-    fetchContent()
+      setContent(result)
+      cmsClient.setCachedContent(`${type}-${slug || 'latest'}-${locale}`, result)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setLoading(false)
+    }
   }
 
   return { content, loading, error, refetch }
@@ -453,16 +454,16 @@ export const useCMSContentManagement = () => {
 
       let result: CMSContent[] = []
       if (filters?.search) {
-        result = await cmsClient.searchContent(filters.search, filters.locale)
+        result = await cmsClient.searchContent(filters.search, filters.locale || 'en')
       } else if (filters?.type) {
-        result = await cmsClient.getContentByType(filters.type, filters.locale)
+        result = await cmsClient.getContentByType(filters.type, filters.locale || 'en')
       } else {
-        result = await cmsClient.getContentByType('page', filters.locale)
+        result = await cmsClient.getContentByType('page', filters?.locale || 'en')
       }
 
       setContents(result)
     } catch (err) {
-      setError(err.message)
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
       setLoading(false)
     }
@@ -482,7 +483,7 @@ export const useCMSContentManagement = () => {
       const result = await cmsClient.createContent(content)
       setContents(prev => [result, ...prev])
     } catch (err) {
-      setError(err.message)
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
       setLoading(false)
     }
@@ -496,7 +497,7 @@ export const useCMSContentManagement = () => {
       const result = await cmsClient.updateContent(id, content)
       setContents(prev => prev.map(item => item.id === id ? result : item))
     } catch (err) {
-      setError(err.message)
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
       setLoading(false)
     }
@@ -510,7 +511,7 @@ export const useCMSContentManagement = () => {
       await cmsClient.deleteContent(id)
       setContents(prev => prev.filter(item => item.id !== id))
     } catch (err) {
-      setError(err.message)
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
       setLoading(false)
     }
