@@ -1,0 +1,131 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Core Banking Entities
+model Inquiry {
+  id              String   @id @default(cuid())
+  fullName        String   @map("customer_name")
+  mobile          String   @map("mobile_number")
+  email           String?
+  product         Product  @relation(fields: [productId], references: [id])
+  productId       String   @map("product_id")
+  preferredBranch String   @map("preferred_branch")
+  message         String?
+  referenceNumber String   @unique @map("reference_number")
+  status          String   @default("pending")
+  timestamp       DateTime @default(now())
+  
+  @@map("inquiries")
+}
+
+model Branch {
+  id            String   @id @default(cuid())
+  name          String
+  address       String
+  phone         String
+  email         String?
+  businessHours String   @map("business_hours")
+  coordinates   String?  // JSON string for lat/lng
+  ifscCode      String   @unique @map("ifsc_code")
+  branchType    String   @map("branch_type")
+  isActive      Boolean  @default(true) @map("is_active")
+  
+  @@map("branches")
+}
+
+model ATM {
+  id             String   @id @default(cuid())
+  location       String
+  address        String
+  coordinates    String?  // JSON string for lat/lng
+  available24x7  Boolean  @default(false) @map("available_24_7")
+  servicesOffered String? @map("services_offered") // JSON string for services list
+  isActive       Boolean  @default(true) @map("is_active")
+  
+  @@map("atms")
+}
+
+model Product {
+  id              String    @id @default(cuid())
+  slug            String    @unique
+  name            String
+  category        String    // personal/business
+  type            String    // loan/deposit/account/service
+  features        Json      // JSON object for features list
+  eligibility     Json      // JSON object for eligibility criteria
+  documents       Json      // JSON object for required documents
+  rates           Json?     // JSON object for interest rates
+  charges         Json?     // JSON object for fees and charges
+  kfsData         Json?     // JSON object for KFS panel data (loans only)
+  relatedProducts String[]  @map("related_products") // Array of related product IDs
+  isActive        Boolean   @default(true) @map("is_active")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  inquiries       Inquiry[]
+  
+  @@map("products")
+}
+
+model DEAFRecord {
+  id                 String   @id @default(cuid())
+  customerId         String   @map("customer_id")
+  glCode             String   @map("gl_code")
+  accountNumber      String   @map("account_number")
+  deafAccountNumber   String   @map("deaf_account_number")
+  customerName       String   @map("customer_name")
+  address            String
+  state              String
+  district           String
+  transactionDate    DateTime @map("transaction_date")
+  amount             Decimal
+  lastUpdated        DateTime @default(now()) @map("last_updated")
+  
+  @@map("deaf_records")
+}
+
+model Grievance {
+  id              String   @id @default(cuid())
+  customerDetails Json     // JSON object for customer info
+  complaintType   String
+  description     String
+  escalationLevel String   @default("level1") // level1, level2, level3
+  status          String   @default("pending")
+  resolutionDetails Json?  // JSON object for resolution info
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@map("grievances")
+}
+
+model Content {
+  id          String   @id @default(cuid())
+  type        String   // news, policy, rate, announcement
+  title       String
+  body        String
+  language    String   // en, hi
+  lastUpdated DateTime @default(now())
+  updatedBy   String
+  published   Boolean  @default(true)
+  
+  @@map("contents")
+}
+
+model Rate {
+  id                String   @id @default(cuid())
+  productType       String
+  tenure            String
+  rate              Decimal
+  differentialCategory String? // senior, staff, etc.
+  effectiveDate     DateTime
+  isActive          Boolean  @default(true)
+  
+  @@map("rates")
+}
