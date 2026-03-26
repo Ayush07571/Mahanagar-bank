@@ -56,7 +56,8 @@
     "for": "के लिए",
     "with": "के साथ",
     "from": "से",
-    "to": "तक"
+    "to": "तक",
+    "calculator": "कैलकुलेटर"
   },
   "navigation": {
     "home": "होम",
@@ -78,13 +79,17 @@
     "support": "समर्थन"
   },
   "header": {
-    "tagline": "आपका विश्वसनीय बैंकिंग साझेदार",
+    "tagline": "आपका विश्वसनीय बैंकिंग पार्टनर",
     "menu": "मेनू",
     "search_placeholder": "खोजें...",
     "language_en": "EN",
     "language_hi": "HI",
     "net_banking_button": "नेट बैंकिंग",
-    "mobile_menu_close": "मेनू बंद करें"
+    "mobile_menu_close": "मेनू बंद करें",
+    "personal_banking": "व्यक्तिगत बैंकिंग",
+    "business_banking": "व्यवसायिक बैंकिंग",
+    "about_us": "हमारे बारे में",
+    "contact_us": "संपर्क करें"
   },
   "footer": {
     "about_us_title": "हमारे बारे में",

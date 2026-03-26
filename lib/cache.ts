@@ -91,12 +91,17 @@ export class MemoryCache {
     this.currentSize = 0
   }
 
+  // Get all cache keys
+  getKeys(): string[] {
+    return Array.from(this.cache.keys())
+  }
+
   // Evict oldest entries when cache is full
   private evictOldestEntries(): void {
     const entries = Array.from(this.cache.entries())
     
     // Sort by timestamp (oldest first)
-    entries.sort((a, b) => a[1] - b[1])
+    entries.sort((a, b) => a[1].timestamp - b[1].timestamp)
 
     // Remove oldest 25% of entries
     const entriesToRemove = Math.ceil(this.maxSize * 0.25)
@@ -120,8 +125,8 @@ export class MemoryCache {
     return {
       totalEntries,
       currentSize: this.currentSize,
-      hitRate: 0, // Would need to track hits/misses separately
-      evictionCount: 0 // Would need to track evictions separately
+      hitRate: 0,
+      evictionCount: 0
     }
   }
 }
@@ -239,10 +244,10 @@ export const cacheUtils = {
   // Cache middleware for API calls
   withCache: <T extends any[], R>(
     cache: MemoryCache,
-    keyGenerator: (...args: any[]) => string,
-    fetcher: (...args: any[]) => Promise<R>
+    keyGenerator: (...args: T) => string,
+    fetcher: (...args: T) => Promise<R>
   ) => {
-    return async (...fetchArgs: any[]): Promise<R> => {
+    return async (...fetchArgs: T): Promise<R> => {
       const cacheKey = keyGenerator(...fetchArgs)
       
       // Try to get from cache first
@@ -265,7 +270,7 @@ export const cacheUtils = {
 
   // Cache invalidation utilities
   invalidatePattern: (cache: MemoryCache, pattern: string) => {
-    const keys = Array.from(cache.cache.keys())
+    const keys = cache.getKeys()
     const matchingKeys = keys.filter(key => key.includes(pattern))
     
     matchingKeys.forEach(key => cache.delete(key))
@@ -317,13 +322,13 @@ export const performanceUtils = {
   },
 
   // Performance monitoring decorator
-  withPerformanceMonitoring: <T extends any[], R = any>(
+  withPerformanceMonitoring: (
     operation: string
   ) => {
     return (target: any, propertyName: string, descriptor: PropertyDescriptor) => {
       const originalMethod = descriptor.value
 
-      descriptor.value = async function (...args: any[]): Promise<R> {
+      descriptor.value = async function (...args: any[]): Promise<any> {
         const { result, duration } = await performanceUtils.measure(
           `${operation}.${propertyName}`,
           () => originalMethod.apply(this, args)
@@ -332,19 +337,6 @@ export const performanceUtils = {
         // Log performance metrics
         console.log(`Performance: ${operation}.${propertyName} took ${duration}ms`)
         
-        // Store performance metrics for monitoring
-        if (typeof window !== 'undefined' && window.gtag) {
-          window.gtag('event', 'performance_metric', {
-            event_category: 'CMS',
-            event_action: operation,
-            event_label: propertyName,
-            value: duration,
-            custom_map: {
-              custom_parameter_1: result ? 'success' : 'error'
-            }
-          })
-        }
-
         return result
       }
     }

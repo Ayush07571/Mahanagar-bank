@@ -5,6 +5,7 @@ export interface MetaTags {
   title: string
   description: string
   keywords?: string[]
+  author?: string
   canonical?: string
   openGraph?: {
     title?: string
@@ -56,10 +57,7 @@ export interface StructuredData {
   }
   datePublished?: string
   dateModified?: string
-  author?: {
-    '@type': string
-    name: string
-  }
+  author?: any
   publisher?: {
     '@type': string
     name: string
@@ -74,6 +72,28 @@ export interface StructuredData {
     name: string
     item: string
   }>
+  contactPoint?: any
+  address?: any
+  sameAs?: string[]
+  itemListElement?: any
+  potentialAction?: any
+  headline?: string
+  brand?: string
+  category?: string
+  offers?: any
+  availability?: string
+  aggregateRating?: any
+  reviewCount?: number
+  telephone?: string
+  email?: string
+  geo?: any
+  openingHours?: string[]
+  priceRange?: string
+  paymentAccepted?: string[]
+  currenciesAccepted?: string[]
+  logo?: any
+  availableLanguage?: string[]
+  contactType?: string
 }
 
 // SEO configuration
@@ -566,7 +586,7 @@ export const useSEOMeta = (meta: MetaTags) => {
         document.title = meta.title
         
         // Update or create meta description
-        let metaDescription = document.querySelector('meta[name="description"]')
+        let metaDescription = document.querySelector('meta[name="description"]') as HTMLMetaElement
         if (!metaDescription) {
           metaDescription = document.createElement('meta')
           metaDescription.name = 'description'
